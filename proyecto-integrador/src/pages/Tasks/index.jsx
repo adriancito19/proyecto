@@ -3,43 +3,37 @@ import { PlusIcon, TrashIcon, XIcon, CheckIcon } from '@heroicons/react/outline'
 import TaskList from '../../components/tasks/TaskList';
 import TaskForm from '../../components/tasks/TaskForm';
 import Button from '../../components/common/Button';
+import { getTasks, createTask, updateTask, deleteTask, toggleTaskCompletion } from '../../services/api/tasks';
+import toast from 'react-hot-toast';
 
 const TasksPage = () => {
-  // Load tasks from localStorage or use default
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks
-      ? JSON.parse(savedTasks)
-      : [
-          {
-            id: 1,
-            title: 'Diseñar el prototipo de la aplicación',
-            description: 'Crear los wireframes y el diseño en Figma',
-            dueDate: '2025-10-20',
-            category: 'trabajo',
-            completed: false,
-            deleted: false
-          },
-          {
-            id: 2,
-            title: 'Estudiar para el examen de matemáticas',
-            description: 'Repasar los temas 4 y 5 del libro',
-            dueDate: '2025-10-18',
-            category: 'universidad',
-            completed: false,
-            deleted: false
-          },
-          {
-            id: 3,
-            title: 'Hacer ejercicio',
-            description: '30 minutos de cardio y pesas',
-            dueDate: '2025-10-17',
-            category: 'personal',
-            completed: true,
-            deleted: false
-          }
-        ];
-  });
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar tareas desde Supabase
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      const data = await getTasks();
+      setTasks(data.map(task => ({
+        id: task.id_tarea,
+        title: task.titulo,
+        description: task.descripcion,
+        dueDate: task.fecha_limite,
+        completed: task.completada,
+        category: 'personal', // Por defecto, ya que no tenemos categorías en la BD
+        deleted: false
+      })));
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      toast.error('Error al cargar las tareas');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // UI State
   const [showModal, setShowModal] = useState(false);
@@ -56,11 +50,6 @@ const TasksPage = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (editingTask) {
@@ -76,29 +65,56 @@ const TasksPage = () => {
     }
   };
 
-  const handleAddTask = (e) => {
+  const handleAddTask = async (e) => {
     e.preventDefault();
-    if (editingTask) {
-      setTasks(tasks.map(task =>
-        task.id === editingTask.id ? editingTask : task
-      ));
+    try {
+      if (editingTask) {
+        // Actualizar tarea existente
+        const updatedTask = await updateTask(editingTask.id, {
+          title: editingTask.title,
+          description: editingTask.description,
+          dueDate: editingTask.dueDate,
+          completed: editingTask.completed
+        });
+        
+        setTasks(tasks.map(task =>
+          task.id === editingTask.id ? {
+            ...task,
+            title: updatedTask.titulo,
+            description: updatedTask.descripcion,
+            dueDate: updatedTask.fecha_limite,
+            completed: updatedTask.completada
+          } : task
+        ));
+        toast.success('Tarea actualizada correctamente');
+      } else {
+        // Crear nueva tarea
+        const newTaskData = {
+          title: e.target.title.value,
+          description: e.target.description.value,
+          dueDate: e.target.dueDate.value,
+          completed: false
+        };
+        
+        const createdTask = await createTask(newTaskData);
+        setTasks([{
+          id: createdTask.id_tarea,
+          title: createdTask.titulo,
+          description: createdTask.descripcion,
+          dueDate: createdTask.fecha_limite,
+          completed: createdTask.completada,
+          category: 'personal',
+          deleted: false
+        }, ...tasks]);
+        toast.success('Tarea creada correctamente');
+      }
+      
+      setShowModal(false);
       setEditingTask(null);
-    } else {
-      const task = {
-        ...newTask,
-        id: Date.now(),
-        completed: false,
-        deleted: false
-      };
-      setTasks([...tasks, task]);
+    } catch (error) {
+      console.error('Error saving task:', error);
+      toast.error(editingTask ? 'Error al actualizar la tarea' : 'Error al crear la tarea');
     }
-    setNewTask({
-      title: '',
-      description: '',
-      dueDate: '',
-      category: 'personal'
-    });
-    setShowModal(false);
   };
 
   const handleEditTask = (task) => {
@@ -112,16 +128,28 @@ const TasksPage = () => {
     setShowModal(true);
   };
 
-  const toggleTaskComplete = (taskId) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const toggleTaskComplete = async (taskId) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      const updatedTask = await toggleTaskCompletion(taskId, !task.completed);
+      
+      setTasks(tasks.map(t =>
+        t.id === taskId ? {
+          ...t,
+          completed: updatedTask.completada
+        } : t
+      ));
+      
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      toast.success('Estado de la tarea actualizado');
+    } catch (error) {
+      console.error('Error toggling task completion:', error);
+      toast.error('Error al actualizar el estado de la tarea');
+    }
   };
 
-  const handleDeleteTask = (taskId) => {
+  const handleDeleteTask = async (taskId) => {
     if (deleteMode) {
       setTasksToDelete(prev =>
         prev.includes(taskId)
@@ -129,18 +157,28 @@ const TasksPage = () => {
           : [...prev, taskId]
       );
     } else {
-      setTasks(tasks.map(task =>
-        task.id === taskId ? { ...task, deleted: true } : task
-      ));
+      try {
+        await deleteTask(taskId);
+        setTasks(tasks.filter(task => task.id !== taskId));
+        toast.success('Tarea eliminada correctamente');
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        toast.error('Error al eliminar la tarea');
+      }
     }
   };
 
-  const confirmDelete = () => {
-    setTasks(tasks.map(task =>
-      tasksToDelete.includes(task.id) ? { ...task, deleted: true } : task
-    ));
-    setTasksToDelete([]);
-    setDeleteMode(false);
+  const confirmDelete = async () => {
+    try {
+      await Promise.all(tasksToDelete.map(taskId => deleteTask(taskId)));
+      setTasks(tasks.filter(task => !tasksToDelete.includes(task.id)));
+      setTasksToDelete([]);
+      setDeleteMode(false);
+      toast.success('Tareas eliminadas correctamente');
+    } catch (error) {
+      console.error('Error deleting tasks:', error);
+      toast.error('Error al eliminar las tareas');
+    }
   };
 
   const toggleSelectTask = (taskId) => {
@@ -160,6 +198,14 @@ const TasksPage = () => {
     task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

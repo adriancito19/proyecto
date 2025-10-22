@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { XIcon } from '@heroicons/react/outline';
+import { getCategories } from '../../services/api/categories';
 
 const TaskForm = ({ 
   task, 
@@ -8,6 +9,23 @@ const TaskForm = ({
   onClose, 
   isEditing 
 }) => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-y-auto backdrop-blur-sm">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto my-4 transform transition-all">
@@ -81,10 +99,14 @@ const TaskForm = ({
                 value={task.category}
                 onChange={onInputChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-gray-900"
+                disabled={loading}
               >
-                <option value="personal">Personal</option>
-                <option value="trabajo">Trabajo</option>
-                <option value="universidad">Universidad</option>
+                <option value="">Selecciona una categoría</option>
+                {categories.map(category => (
+                  <option key={category.id_categoria} value={category.nombre.toLowerCase()}>
+                    {category.nombre}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
