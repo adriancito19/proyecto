@@ -16,11 +16,12 @@ export const createTask = async (task) => {
   const { data, error } = await supabase
     .from('tareas')
     .insert([{
-      titulo: task.title,
-      descripcion: task.description,
-      fecha_limite: task.dueDate,
-      completada: task.completed || false,
-      categoria: task.category
+      titulo: task.titulo || task.title,
+      descripcion: task.descripcion || task.description,
+      fecha_limite: task.fecha_limite || task.dueDate,
+      completada: task.completada || task.completed || false,
+      categoria: task.categoria || task.category,
+      prioridad: task.prioridad || task.priority || 'media'
     }])
     .select();
 
@@ -30,15 +31,22 @@ export const createTask = async (task) => {
 
 // Actualizar una tarea
 export const updateTask = async (taskId, updates) => {
+  const updateData = {
+    fecha_actualizacion: new Date().toISOString()
+  };
+
+  // Solo actualizar campos que se proporcionan
+  if (updates.title !== undefined) updateData.titulo = updates.title;
+  if (updates.description !== undefined) updateData.descripcion = updates.description;
+  if (updates.dueDate !== undefined) updateData.fecha_limite = updates.dueDate;
+  if (updates.completada !== undefined) updateData.completada = updates.completada;
+  if (updates.completed !== undefined) updateData.completada = updates.completed;
+  if (updates.priority !== undefined) updateData.prioridad = updates.priority;
+  if (updates.prioridad !== undefined) updateData.prioridad = updates.prioridad;
+
   const { data, error } = await supabase
     .from('tareas')
-    .update({
-      titulo: updates.title,
-      descripcion: updates.description,
-      fecha_limite: updates.dueDate,
-      completada: updates.completed,
-      fecha_actualizacion: new Date().toISOString()
-    })
+    .update(updateData)
     .eq('id_tarea', taskId)
     .select();
 

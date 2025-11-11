@@ -11,9 +11,9 @@ function App() {
   return (
     <Router>
       <Suspense fallback={<Loader />}>
-        <div className="min-h-screen w-full bg-gray-50 overflow-x-hidden flex flex-col relative">
+        <div className="min-h-screen w-full bg-slate-50 overflow-x-hidden flex flex-col">
           <Header />
-          <main className="flex-grow py-6">
+          <main className="flex-grow py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <AppRoutes />
             </div>
@@ -22,10 +22,24 @@ function App() {
           <Toaster 
             position="bottom-right"
             toastOptions={{
-              duration: 4000,
+              duration: 3000,
               style: {
-                background: '#363636',
+                background: '#1e293b',
                 color: '#fff',
+                fontSize: '14px',
+                fontWeight: '500',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
               },
             }}
           />
