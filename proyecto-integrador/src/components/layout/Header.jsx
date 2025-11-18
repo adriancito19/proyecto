@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MenuIcon, XIcon, ClipboardListIcon, CalendarIcon, UserCircleIcon } from '@heroicons/react/outline';
+import { MenuIcon, XIcon, HomeIcon, ClipboardListIcon, CalendarIcon, UserCircleIcon } from '@heroicons/react/outline';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,6 +9,7 @@ const Header = () => {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
+    { path: '/', label: 'Inicio', icon: HomeIcon },
     { path: '/tasks', label: 'Tareas', icon: ClipboardListIcon },
     { path: '/calendar', label: 'Calendario', icon: CalendarIcon },
   ];
