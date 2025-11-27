@@ -13,7 +13,7 @@ const MiniCalendar = ({ currentDate, onDateChange, tasks }) => {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     return { daysInMonth, startingDayOfWeek };
   };
 
@@ -29,10 +29,15 @@ const MiniCalendar = ({ currentDate, onDateChange, tasks }) => {
 
   const hasTasksOnDate = (day) => {
     const date = new Date(year, month, day);
-    const dateStr = date.toISOString().split('T')[0];
+    // Construct local YYYY-MM-DD
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+
     return tasks.some(task => {
       if (!task.dueDate || task.deleted) return false;
-      const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
+      const taskDate = task.dueDate.substring(0, 10);
       return taskDate === dateStr;
     });
   };
@@ -91,11 +96,10 @@ const MiniCalendar = ({ currentDate, onDateChange, tasks }) => {
             <button
               key={day}
               onClick={() => onDateChange(new Date(year, month, day))}
-              className={`aspect-square text-xs rounded-full flex items-center justify-center transition-all relative ${
-                isTodayDate
+              className={`aspect-square text-xs rounded-full flex items-center justify-center transition-all relative ${isTodayDate
                   ? 'bg-blue-600 text-white font-bold'
                   : 'hover:bg-gray-100 text-gray-700'
-              }`}
+                }`}
             >
               {day}
               {hasTasks && !isTodayDate && (

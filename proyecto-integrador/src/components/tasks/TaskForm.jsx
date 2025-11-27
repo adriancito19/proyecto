@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { XIcon } from '@heroicons/react/outline';
 import { getCategories } from '../../services/api/categories';
 
-const TaskForm = ({ 
-  task, 
-  onInputChange, 
-  onSubmit, 
-  onClose, 
-  isEditing 
+const TaskForm = ({
+  task,
+  onInputChange,
+  onSubmit,
+  onClose,
+  isEditing
 }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,9 @@ const TaskForm = ({
     const loadCategories = async () => {
       try {
         const data = await getCategories();
-        setCategories(data);
+        // Filtrar 'personal' si viene de la API para evitar duplicados con la opción hardcodeada
+        const filteredCategories = data.filter(cat => cat.nombre.toLowerCase() !== 'personal');
+        setCategories(filteredCategories);
       } catch (error) {
         console.error('Error loading categories:', error);
       } finally {
@@ -26,107 +28,146 @@ const TaskForm = ({
 
     loadCategories();
   }, []);
+
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-y-auto backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto my-4 transform transition-all">
-        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {isEditing ? 'Editar Tarea' : 'Nueva Tarea'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 hover:bg-gray-100 transition-colors"
-            aria-label="Cerrar"
-          >
-            <XIcon className="h-5 w-5" />
-          </button>
-        </div>
-        
-        <form onSubmit={onSubmit} className="p-5 sm:p-6 space-y-5">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Título *
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={task.title}
-              onChange={onInputChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-gray-900"
-              placeholder="Título de la tarea"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Descripción
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={task.description}
-              onChange={onInputChange}
-              rows="3"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-gray-900"
-              placeholder="Descripción detallada de la tarea"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha Límite
-              </label>
-              <input
-                type="date"
-                id="dueDate"
-                name="dueDate"
-                value={task.dueDate || ''}
-                onChange={onInputChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-gray-900"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Categoría
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={task.category}
-                onChange={onInputChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-gray-900"
-                disabled={loading}
+    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 bg-gray-900/60 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={onClose}></div>
+
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100 relative z-10">
+          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl leading-6 font-bold text-gray-900" id="modal-title">
+                {isEditing ? 'Editar Tarea' : 'Nueva Tarea'}
+              </h3>
+              <button
+                onClick={onClose}
+                className="bg-gray-50 rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <option value="">Selecciona una categoría</option>
-                {categories.map(category => (
-                  <option key={category.id_categoria} value={category.nombre.toLowerCase()}>
-                    {category.nombre}
-                  </option>
-                ))}
-              </select>
+                <XIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
+
+            <form onSubmit={onSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={task.title}
+                  onChange={onInputChange}
+                  className="block w-full px-4 py-3 rounded-xl border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all shadow-sm"
+                  placeholder="¿Qué necesitas hacer?"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Descripción
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={task.description}
+                  onChange={onInputChange}
+                  rows="3"
+                  className="block w-full px-4 py-3 rounded-xl border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all shadow-sm resize-none"
+                  placeholder="Añade detalles adicionales..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="dueDate" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Fecha Límite
+                  </label>
+                  <input
+                    type="date"
+                    id="dueDate"
+                    name="dueDate"
+                    value={task.dueDate || ''}
+                    onChange={onInputChange}
+                    className="block w-full px-4 py-3 rounded-xl border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all shadow-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Categoría
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="category"
+                      name="category"
+                      value={task.category}
+                      onChange={onInputChange}
+                      className="block w-full px-4 py-3 rounded-xl border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all shadow-sm appearance-none"
+                      disabled={loading}
+                    >
+                      <option value="personal">Personal</option>
+                      {categories.map(category => (
+                        <option key={category.id_categoria} value={category.nombre.toLowerCase()}>
+                          {category.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="priority" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Prioridad
+                </label>
+                <div className="relative">
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={task.priority || 'media'}
+                    onChange={onInputChange}
+                    className="block w-full px-4 py-3 rounded-xl border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all shadow-sm appearance-none"
+                  >
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all transform active:scale-95"
+                >
+                  {isEditing ? 'Guardar Cambios' : 'Crear Tarea'}
+                </button>
+              </div>
+            </form>
           </div>
-          
-          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-100 mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors"
-            >
-              {isEditing ? 'Actualizar' : 'Crear'} Tarea
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

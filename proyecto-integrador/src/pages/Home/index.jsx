@@ -4,12 +4,13 @@ import StatCard from '../../components/home/StatCard';
 import QuickActions from '../../components/home/QuickActions';
 import RecentTasks from '../../components/home/RecentTasks';
 import UpcomingTasks from '../../components/home/UpcomingTasks';
-import { 
-  ClipboardListIcon, 
-  CheckCircleIcon, 
-  ClockIcon, 
-  ExclamationCircleIcon 
+import {
+  ClipboardListIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationCircleIcon
 } from '@heroicons/react/outline';
+import TaskPreviewModal from '../../components/tasks/TaskPreviewModal';
 
 const Home = () => {
   const [tasks, setTasks] = useState([]);
@@ -20,6 +21,11 @@ const Home = () => {
     pending: 0,
     overdue: 0
   });
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+  };
 
   useEffect(() => {
     loadTasks();
@@ -35,6 +41,7 @@ const Home = () => {
         dueDate: task.fecha_limite,
         completed: task.completada,
         category: task.categoria || 'personal',
+        priority: task.prioridad,
         createdAt: task.fecha_creacion
       }));
 
@@ -56,8 +63,8 @@ const Home = () => {
     const pending = taskList.filter(t => !t.completed).length;
     const overdue = taskList.filter(t => {
       if (t.completed || !t.dueDate) return false;
-      const dueDate = new Date(t.dueDate);
-      dueDate.setHours(0, 0, 0, 0);
+      const [year, month, day] = t.dueDate.split('-').map(Number);
+      const dueDate = new Date(year, month - 1, day);
       return dueDate < today;
     }).length;
 
@@ -126,8 +133,8 @@ const Home = () => {
 
       {/* Tasks Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentTasks tasks={tasks} />
-        <UpcomingTasks tasks={tasks} />
+        <RecentTasks tasks={tasks} onTaskClick={handleTaskClick} />
+        <UpcomingTasks tasks={tasks} onTaskClick={handleTaskClick} />
       </div>
 
       {/* Productivity Tip */}
@@ -143,12 +150,20 @@ const Home = () => {
               Consejo de Productividad
             </h3>
             <p className="text-sm text-gray-700">
-              Organiza tus tareas por prioridad y establece fechas límite realistas. 
+              Organiza tus tareas por prioridad y establece fechas límite realistas.
               Revisa tu calendario diariamente para mantenerte al día con tus compromisos.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Task Preview Modal */}
+      {selectedTask && (
+        <TaskPreviewModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 };

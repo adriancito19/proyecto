@@ -10,9 +10,9 @@ const DayModal = ({ date, tasks, onClose, onTasksUpdate }) => {
   const [newTaskPriority, setNewTaskPriority] = useState('media');
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('es-ES', { 
+    return date.toLocaleDateString('es-ES', {
       weekday: 'long',
-      year: 'numeric', 
+      year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
@@ -30,7 +30,7 @@ const DayModal = ({ date, tasks, onClose, onTasksUpdate }) => {
 
   const handleDeleteTask = async (taskId) => {
     if (!window.confirm('¿Estás seguro de eliminar esta tarea?')) return;
-    
+
     try {
       await deleteTask(taskId);
       toast.success('Tarea eliminada');
@@ -48,11 +48,11 @@ const DayModal = ({ date, tasks, onClose, onTasksUpdate }) => {
       await createTask({
         titulo: newTaskTitle,
         descripcion: newTaskDescription,
-        fecha_limite: date.toISOString().split('T')[0],
+        fecha_limite: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
         prioridad: newTaskPriority,
         completada: false
       });
-      
+
       toast.success('Tarea creada');
       setNewTaskTitle('');
       setNewTaskDescription('');
@@ -101,24 +101,22 @@ const DayModal = ({ date, tasks, onClose, onTasksUpdate }) => {
             {tasks.map((task) => (
               <div
                 key={task.id}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  task.completed 
-                    ? 'bg-gray-50 border-gray-200' 
+                className={`p-4 rounded-lg border-2 transition-all ${task.completed
+                    ? 'bg-gray-50 border-gray-200'
                     : getPriorityColor(task.priority)
-                }`}
+                  }`}
               >
                 <div className="flex items-start gap-3">
                   <button
                     onClick={() => handleToggleComplete(task)}
-                    className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                      task.completed
+                    className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${task.completed
                         ? 'bg-green-500 border-green-500'
                         : 'border-gray-300 hover:border-green-500'
-                    }`}
+                      }`}
                   >
                     {task.completed && <CheckIcon className="h-3 w-3 text-white" />}
                   </button>
-                  
+
                   <div className="flex-1 min-w-0">
                     <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                       {task.title}

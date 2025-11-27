@@ -19,7 +19,7 @@ function App() {
             </div>
           </main>
           <Footer />
-          <Toaster 
+          <Toaster
             position="bottom-right"
             toastOptions={{
               duration: 3000,

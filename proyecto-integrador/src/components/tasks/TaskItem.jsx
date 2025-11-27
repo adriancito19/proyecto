@@ -1,94 +1,115 @@
 import React from 'react';
-import { PencilIcon, TrashIcon, CheckIcon } from '@heroicons/react/outline';
+import { PencilIcon, TrashIcon, CheckIcon, CalendarIcon } from '@heroicons/react/outline';
 
-const TaskItem = ({ 
-  task, 
-  onToggleComplete, 
-  onEdit, 
-  onDelete, 
-  deleteMode, 
+const TaskItem = ({
+  task,
+  onToggleComplete,
+  onEdit,
+  onDelete,
+  deleteMode,
   isSelected,
-  onSelect 
+  onSelect
 }) => {
   const getCategoryColor = (category) => {
     switch (category) {
       case 'trabajo':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20';
       case 'universidad':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-50 text-purple-700 ring-1 ring-purple-600/20';
       case 'personal':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 ring-1 ring-green-600/20';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 ring-1 ring-gray-600/20';
     }
   };
 
   return (
-    <div className={`p-4 sm:p-5 rounded-lg ${task.completed ? 'bg-gray-50' : 'bg-white'} border ${task.completed ? 'border-gray-200' : 'border-gray-100'} hover:shadow-md transition-shadow`}>
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start space-x-4 flex-1 mb-3 sm:mb-0">
+    <div
+      onClick={() => !deleteMode && onSelect && onSelect(task)}
+      className={`group relative p-5 rounded-2xl transition-all duration-200 border cursor-pointer ${task.completed
+        ? 'bg-gray-50 border-gray-100'
+        : 'bg-white border-gray-100 hover:border-blue-100 hover:shadow-lg hover:shadow-blue-500/5'
+        }`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex items-start space-x-4 flex-1">
           {deleteMode ? (
-            <div className="mt-1">
+            <div className="mt-1" onClick={(e) => e.stopPropagation()}>
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => onSelect(task.id)}
-                className="w-4 h-4 text-blue-600 bg-white border-gray-200 rounded-sm focus:ring-gray-100 focus:ring-2"
+                className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all cursor-pointer"
               />
             </div>
           ) : (
             <button
-              onClick={() => onToggleComplete(task.id)}
-              className={`h-6 w-6 rounded-md border flex items-center justify-center mt-0.5 flex-shrink-0 transition-colors ${
-                task.completed 
-                  ? 'bg-white border-gray-200 text-green-600' 
-                  : 'bg-white border-gray-200 hover:bg-gray-100 hover:text-blue-700'
-              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleComplete(task.id);
+              }}
+              className={`h-6 w-6 rounded-full border-2 flex items-center justify-center mt-1 flex-shrink-0 transition-all duration-200 ${task.completed
+                ? 'bg-green-500 border-green-500 text-white scale-100'
+                : 'bg-transparent border-gray-300 text-transparent hover:border-blue-400'
+                }`}
             >
-              {task.completed && <CheckIcon className="h-3.5 w-3.5" />}
+              <CheckIcon className="h-3.5 w-3.5" strokeWidth={3} />
             </button>
           )}
-          
-          <div className="flex-1">
-            <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+
+          <div className="flex-1 min-w-0">
+            <h3 className={`text-lg font-semibold truncate pr-2 transition-colors ${task.completed ? 'text-gray-400 line-through decoration-2 decoration-gray-200' : 'text-gray-900'
+              }`}>
               {task.title}
             </h3>
             {task.description && (
-              <p className={`mt-1.5 text-sm ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`mt-1 text-sm leading-relaxed ${task.completed ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                 {task.description}
               </p>
             )}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className={`px-2.5 py-1 text-xs font-medium rounded-md ${getCategoryColor(task.category)}`}>
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${getCategoryColor(task.category)}`}>
                 {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
               </span>
+
               {task.dueDate && (
-                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md flex items-center">
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  {new Date(task.dueDate).toLocaleDateString()}
-                </span>
+                <div className={`flex items-center text-xs font-medium ${task.completed ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                  <CalendarIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                  {new Date(task.dueDate).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </div>
               )}
             </div>
           </div>
         </div>
-        
+
         {!deleteMode && !task.completed && (
-          <div className="flex space-x-1 self-end sm:self-start mt-2 sm:mt-0">
+          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 sm:self-start">
             <button
-              onClick={() => onEdit(task)}
-              className="p-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 transition-colors"
-              aria-label="Editar tarea"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
+              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Editar"
             >
-              <PencilIcon className="h-4 w-4" />
+              <PencilIcon className="h-5 w-5" />
             </button>
             <button
-              onClick={() => onDelete(task.id)}
-              className="p-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-100 transition-colors"
-              aria-label="Eliminar tarea"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task.id);
+              }}
+              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Eliminar"
             >
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon className="h-5 w-5" />
             </button>
           </div>
         )}

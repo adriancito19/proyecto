@@ -36,11 +36,10 @@ const Header = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`relative px-4 py-2 text-sm font-medium transition-all flex items-center space-x-2 ${
-                      active
+                    className={`relative px-4 py-2 text-sm font-medium transition-all flex items-center space-x-2 ${active
                         ? 'text-slate-900'
                         : 'text-gray-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     <span>{link.label}</span>
@@ -88,11 +87,10 @@ const Header = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                    active
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition-all ${active
                       ? 'bg-slate-100 text-slate-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span>{link.label}</span>

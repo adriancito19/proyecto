@@ -49,7 +49,7 @@ const CalendarPage = () => {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
@@ -70,10 +70,17 @@ const CalendarPage = () => {
 
   // Obtener tareas para una fecha específica
   const getTasksForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    // Construct local YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     let filteredTasks = tasks.filter(task => {
       if (!task.dueDate || task.deleted) return false;
-      const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
+      // Assuming task.dueDate is "YYYY-MM-DD" or ISO string.
+      // If it's "YYYY-MM-DD", we can just take the first 10 chars.
+      const taskDate = task.dueDate.substring(0, 10);
       return taskDate === dateStr;
     });
 
@@ -109,9 +116,9 @@ const CalendarPage = () => {
 
   // Formatear fecha para mostrar
   const formatDate = (date) => {
-    return date.toLocaleDateString('es-ES', { 
-      year: 'numeric', 
-      month: 'long' 
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long'
     });
   };
 
@@ -130,7 +137,7 @@ const CalendarPage = () => {
 
   // Crear array de días del mes con días del mes anterior y siguiente
   const calendarDays = [];
-  
+
   // Días del mes anterior
   const prevMonthLastDay = new Date(year, month, 0).getDate();
   for (let i = startingDayOfWeek - 1; i >= 0; i--) {
@@ -141,7 +148,7 @@ const CalendarPage = () => {
       date: new Date(year, month - 1, prevMonthLastDay - i)
     });
   }
-  
+
   // Días del mes actual
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push({
@@ -151,7 +158,7 @@ const CalendarPage = () => {
       date: new Date(year, month, day)
     });
   }
-  
+
   // Días del mes siguiente para completar la última semana
   const remainingDays = 42 - calendarDays.length; // 6 semanas * 7 días
   for (let day = 1; day <= remainingDays; day++) {
@@ -168,12 +175,12 @@ const CalendarPage = () => {
     const curr = new Date(currentDate);
     const first = curr.getDate() - curr.getDay();
     const weekDays = [];
-    
+
     for (let i = 0; i < 7; i++) {
       const day = new Date(curr.setDate(first + i));
       weekDays.push(day);
     }
-    
+
     return weekDays;
   };
 
@@ -198,16 +205,15 @@ const CalendarPage = () => {
               Visualiza y gestiona tus tareas en el calendario
             </p>
           </div>
-          
+
           {/* View Mode Toggle */}
           <div className="flex gap-2 mt-4 sm:mt-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                showFilters
+              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${showFilters
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <FilterIcon className="h-5 w-5" />
               <span className="hidden sm:inline">Filtros</span>
@@ -215,22 +221,20 @@ const CalendarPage = () => {
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('month')}
-                className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${
-                  viewMode === 'month'
+                className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${viewMode === 'month'
                     ? 'bg-white shadow-sm text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <ViewGridIcon className="h-5 w-5" />
                 <span className="hidden sm:inline">Mes</span>
               </button>
               <button
                 onClick={() => setViewMode('week')}
-                className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${
-                  viewMode === 'week'
+                className={`px-3 py-2 rounded-md transition-all flex items-center gap-2 ${viewMode === 'week'
                     ? 'bg-white shadow-sm text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <ViewListIcon className="h-5 w-5" />
                 <span className="hidden sm:inline">Semana</span>
@@ -247,31 +251,28 @@ const CalendarPage = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilterStatus('all')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    filterStatus === 'all'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'all'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   Todas
                 </button>
                 <button
                   onClick={() => setFilterStatus('pending')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    filterStatus === 'pending'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'pending'
                       ? 'bg-yellow-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   Pendientes
                 </button>
                 <button
                   onClick={() => setFilterStatus('completed')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    filterStatus === 'completed'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterStatus === 'completed'
                       ? 'bg-green-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   Completadas
                 </button>
@@ -281,46 +282,46 @@ const CalendarPage = () => {
         )}
 
         {/* Stats */}
-        <CalendarStats 
-          tasks={tasks} 
-          currentMonth={currentDate.getMonth()} 
-          currentYear={currentDate.getFullYear()} 
+        <CalendarStats
+          tasks={tasks}
+          currentMonth={currentDate.getMonth()}
+          currentYear={currentDate.getFullYear()}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Calendar */}
           <div className="lg:col-span-3">{/* Calendar Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={goToPreviousMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Mes anterior"
-            >
-              <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
-            </button>
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-semibold text-gray-900 capitalize">
-                {formatDate(currentDate)}
-              </h2>
-              <button
-                onClick={goToToday}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors"
-              >
-                Hoy
-              </button>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={goToPreviousMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="Mes anterior"
+                >
+                  <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl font-semibold text-gray-900 capitalize">
+                    {formatDate(currentDate)}
+                  </h2>
+                  <button
+                    onClick={goToToday}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors"
+                  >
+                    Hoy
+                  </button>
+                </div>
+                <button
+                  onClick={goToNextMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="Mes siguiente"
+                >
+                  <ChevronRightIcon className="h-6 w-6 text-gray-600" />
+                </button>
+              </div>
             </div>
-            <button
-              onClick={goToNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Mes siguiente"
-            >
-              <ChevronRightIcon className="h-6 w-6 text-gray-600" />
-            </button>
-          </div>
-        </div>
 
-{/* Calendar Grid - Month View */}
+            {/* Calendar Grid - Month View */}
             {viewMode === 'month' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 {/* Day Headers */}
@@ -328,9 +329,8 @@ const CalendarPage = () => {
                   {dayNames.map((dayName, idx) => (
                     <div
                       key={dayName}
-                      className={`px-2 sm:px-4 py-3 text-center text-xs sm:text-sm font-semibold border-r border-gray-200 last:border-r-0 ${
-                        idx === 0 || idx === 6 ? 'text-blue-700' : 'text-gray-700'
-                      }`}
+                      className={`px-2 sm:px-4 py-3 text-center text-xs sm:text-sm font-semibold border-r border-gray-200 last:border-r-0 ${idx === 0 || idx === 6 ? 'text-blue-700' : 'text-gray-700'
+                        }`}
                     >
                       <span className="hidden sm:inline">{dayName}</span>
                       <span className="sm:hidden">{dayName.charAt(0)}</span>
@@ -352,32 +352,30 @@ const CalendarPage = () => {
                       <button
                         key={index}
                         onClick={() => setSelectedDate(date)}
-                        className={`min-h-[80px] sm:min-h-[120px] border-r border-b border-gray-200 last:border-r-0 p-1 sm:p-2 transition-all hover:shadow-lg hover:z-10 relative group ${
-                          !isCurrentMonth
+                        className={`min-h-[80px] sm:min-h-[120px] border-r border-b border-gray-200 last:border-r-0 p-1 sm:p-2 transition-all hover:shadow-lg hover:z-10 relative group ${!isCurrentMonth
                             ? 'bg-gray-50'
                             : isTodayDate
-                            ? 'bg-gradient-to-br from-blue-50 to-blue-100 ring-2 ring-blue-400 ring-inset'
-                            : isOverdue
-                            ? 'bg-red-50'
-                            : 'bg-white hover:bg-blue-50'
-                        }`}
+                              ? 'bg-gradient-to-br from-blue-50 to-blue-100 ring-2 ring-blue-400 ring-inset'
+                              : isOverdue
+                                ? 'bg-red-50'
+                                : 'bg-white hover:bg-blue-50'
+                          }`}
                       >
                         {/* Day Number */}
                         <div className="flex justify-between items-start mb-1">
                           <span
-                            className={`text-xs sm:text-sm font-semibold transition-all ${
-                              !isCurrentMonth
+                            className={`text-xs sm:text-sm font-semibold transition-all ${!isCurrentMonth
                                 ? 'text-gray-400'
                                 : isTodayDate
-                                ? 'text-white bg-blue-600 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-md'
-                                : isOverdue
-                                ? 'text-red-600'
-                                : 'text-gray-900'
-                            }`}
+                                  ? 'text-white bg-blue-600 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-md'
+                                  : isOverdue
+                                    ? 'text-red-600'
+                                    : 'text-gray-900'
+                              }`}
                           >
                             {day}
                           </span>
-                          
+
                           {/* Task Count Badge */}
                           {dayTasks.length > 0 && (
                             <div className="flex gap-1">
@@ -400,11 +398,10 @@ const CalendarPage = () => {
                           {dayTasks.slice(0, 2).map((task) => (
                             <div
                               key={task.id}
-                              className={`text-xs px-1.5 py-0.5 rounded truncate border transition-all ${
-                                task.completed
+                              className={`text-xs px-1.5 py-0.5 rounded truncate border transition-all ${task.completed
                                   ? 'bg-green-100 text-green-800 border-green-200 line-through opacity-75'
                                   : getPriorityColor(task.priority)
-                              }`}
+                                }`}
                               title={task.title}
                             >
                               {task.title}
@@ -440,21 +437,20 @@ const CalendarPage = () => {
                 <div className="grid grid-cols-7 gap-2 p-4">
                   {weekDays.map((date, idx) => {
                     const dayTasks = getTasksForDate(date);
-                    const isTodayDate = isToday(date.getDate()) && 
-                                       date.getMonth() === today.getMonth() && 
-                                       date.getFullYear() === today.getFullYear();
+                    const isTodayDate = isToday(date.getDate()) &&
+                      date.getMonth() === today.getMonth() &&
+                      date.getFullYear() === today.getFullYear();
                     const isOverdue = hasOverdueTasks(date);
 
                     return (
                       <div
                         key={idx}
-                        className={`rounded-lg border-2 p-3 transition-all ${
-                          isTodayDate
+                        className={`rounded-lg border-2 p-3 transition-all ${isTodayDate
                             ? 'border-blue-500 bg-blue-50'
                             : isOverdue
-                            ? 'border-red-300 bg-red-50'
-                            : 'border-gray-200 bg-white'
-                        }`}
+                              ? 'border-red-300 bg-red-50'
+                              : 'border-gray-200 bg-white'
+                          }`}
                       >
                         <div className="text-center mb-3">
                           <div className="text-xs font-medium text-gray-600">
@@ -469,11 +465,10 @@ const CalendarPage = () => {
                             <button
                               key={task.id}
                               onClick={() => setSelectedDate(date)}
-                              className={`w-full text-left text-xs px-2 py-2 rounded border transition-all hover:shadow-md ${
-                                task.completed
+                              className={`w-full text-left text-xs px-2 py-2 rounded border transition-all hover:shadow-md ${task.completed
                                   ? 'bg-green-100 text-green-800 border-green-200 line-through'
                                   : getPriorityColor(task.priority)
-                              }`}
+                                }`}
                             >
                               <div className="font-medium truncate">{task.title}</div>
                               {task.description && (
@@ -554,7 +549,7 @@ const CalendarPage = () => {
           {/* Sidebar */}
           <div className="hidden lg:block space-y-6">
             {/* Mini Calendar */}
-            <MiniCalendar 
+            <MiniCalendar
               currentDate={currentDate}
               onDateChange={(date) => {
                 setCurrentDate(date);
@@ -596,17 +591,16 @@ const CalendarPage = () => {
                     return (
                       <div
                         key={task.id}
-                        className={`p-2 rounded-lg border text-xs ${
-                          isOverdue
+                        className={`p-2 rounded-lg border text-xs ${isOverdue
                             ? 'bg-red-50 border-red-200'
                             : getPriorityColor(task.priority)
-                        }`}
+                          }`}
                       >
                         <div className="font-medium truncate">{task.title}</div>
                         <div className="text-xs opacity-75 mt-1">
-                          {dueDate.toLocaleDateString('es-ES', { 
-                            day: 'numeric', 
-                            month: 'short' 
+                          {dueDate.toLocaleDateString('es-ES', {
+                            day: 'numeric',
+                            month: 'short'
                           })}
                         </div>
                       </div>
